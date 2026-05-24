@@ -303,9 +303,12 @@ bool lpwr_is_allow_timeout_hook(void) {
     gpio_write_pin_high(WIN_PIN);
     gpio_write_pin_high(CPAS_PIN);
 
-     if (wireless_get_current_devs() == DEVS_USB) {
-         return false;
-     }
+    if (
+        wireless_get_current_devs() == DEVS_USB &&
+        USB_DRIVER.state > USB_STOP
+    ) {
+        return false;
+    }
 
     return true;
 }
@@ -1528,8 +1531,8 @@ void bat_indicators(void) {
         battery_process_time = 0;
 
         // if (!led_chaning) rgb_matrix_set_color(HS_MATRIX_BLINK_INDEX_BAT, 0x00, 0x00, 0x00);
-    } else if (charging_state) {
-//    } else if (charging_state && !(bat_full_flag)) {
+//    } else if (charging_state) {
+    } else if (charging_state && !(bat_full_flag)) {
 //    } else if (charging_state && *md_getp_bat() <= 95) {
 
         battery_process_time = 0;
