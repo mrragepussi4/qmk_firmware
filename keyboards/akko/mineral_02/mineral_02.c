@@ -1532,8 +1532,8 @@ void bat_indicators(void) {
 
         // if (!led_chaning) rgb_matrix_set_color(HS_MATRIX_BLINK_INDEX_BAT, 0x00, 0x00, 0x00);
 //    } else if (charging_state) {
-    } else if (charging_state && !(bat_full_flag)) {
-//    } else if (charging_state && *md_getp_bat() <= 95) {
+//    } else if (charging_state && !(bat_full_flag)) {
+    } else if (charging_state && *md_getp_bat() <= 95) {
 
         battery_process_time = 0;
         if (!led_status && rgb_matrix_get_val()) {
@@ -1738,7 +1738,7 @@ bool rgb_matrix_indicators_advanced_kb(uint8_t led_min, uint8_t led_max) {
 #endif
 
     if (confinfo.rgb_tog_filp) {
-        if ((!(charging_state && (!bat_full_flag))) || ((!charging_state) && (*md_getp_bat() <= BATTERY_CAPACITY_LOW)) || led_status){
+        if ((!(charging_state && (*md_getp_bat() <= 95))) || ((!charging_state) && (*md_getp_bat() <= BATTERY_CAPACITY_LOW)) || led_status){
             for (uint8_t i = 0;i < 3;i++){
                 rgb_matrix_set_color(i,0,0,0);
             }
@@ -1895,7 +1895,7 @@ bool rgb_matrix_indicators_advanced_rgblight(uint8_t led_min, uint8_t led_max) {
         }
     }
 
-    if (!led_status && ((charging_state && bat_full_flag) || (!charging_state && !(*md_getp_bat() <= BATTERY_CAPACITY_LOW)))){
+    if (!led_status && ((charging_state && *md_getp_bat() >= 95) || (!charging_state && !(*md_getp_bat() <= BATTERY_CAPACITY_LOW)))){
         if (!confinfo.rgb_tog_filp && hs_get_rgb_enable()){
             switch (confinfo.moude) {
                 case 0:{extern void rgblight_effect_rainbow_swirl2(void); rgblight_effect_rainbow_swirl2();}break;
