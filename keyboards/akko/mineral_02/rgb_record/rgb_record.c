@@ -21,6 +21,7 @@ rgbrec_effects_t p_rgbrec_effects = NULL;
 
 static uint16_t rgbrec_hs_lists[] = RGB_RECORD_HS_LISTS;
 static uint8_t rgbrec_buffer[MATRIX_ROWS * MATRIX_COLS * 2];
+extern uint8_t hs_get_battery_percent(void);
 
 //clang-format off
 static const uint8_t rgbmatrix_buff[]   = {13, 15, 16, 24, 25, 26, 29, 37, 33, 34, 35, 43, 2, 5, 6, 9};
@@ -311,7 +312,7 @@ void rgbrec_switch_channel(uint8_t channel) {
     }
 
     rgbrec_read_current_channel(channel);
-    rgbrec_end(channel);                  
+    rgbrec_end(channel);
     rgbrec_show(channel);
 }
 
@@ -391,12 +392,13 @@ void query(void) {
 #else
         rgb_matrix_set_color_all(0x00, 0x00, 0x00);
 #endif
+        uint8_t bat = hs_get_battery_percent();
         for (uint8_t i = 0; i < 10; i++) {
             uint8_t mi_index[10] = RGB_MATRIX_BAT_INDEX_MAP;
-            if ((i < (*md_getp_bat() / 10)) || (i < 1)) {
-                if (*md_getp_bat() >= (IM_BAT_REQ_LEVEL1_VAL)) {
+            if ((i < (bat / 10)) || (i < 1)) {
+                if (bat >= (IM_BAT_REQ_LEVEL1_VAL)) {
                     rgb_matrix_set_color(mi_index[i], IM_BAT_REQ_LEVEL1_COLOR);
-                } else if (*md_getp_bat() >= (IM_BAT_REQ_LEVEL2_VAL)) {
+                } else if (bat >= (IM_BAT_REQ_LEVEL2_VAL)) {
                     rgb_matrix_set_color(mi_index[i], IM_BAT_REQ_LEVEL2_COLOR);
                 } else {
                     rgb_matrix_set_color(mi_index[i], IM_BAT_REQ_LEVEL3_COLOR);

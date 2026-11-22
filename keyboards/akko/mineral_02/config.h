@@ -40,10 +40,10 @@
 #define HS_PAIR_COLOR_2G4                   RGB_GREEN
 #define HS_PAIR_COLOR_USB                   RGB_WHITE
 
-#define VIA_EEPROM_ALLOW_RESET 
+#define VIA_EEPROM_ALLOW_RESET
 /* Battery */
 #define BATTERY_CAPACITY_LOW                15
-#define BATTERY_CAPACITY_STOP               0
+#define BATTERY_CAPACITY_STOP               2
 #define RGB_MATRIX_BAT_INDEX_MAP            {39, 38, 37, 36, 35, 34, 33, 32, 31, 30}
 
 /* Status Indicator Lamp */

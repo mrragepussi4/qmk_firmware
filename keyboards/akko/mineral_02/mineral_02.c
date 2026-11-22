@@ -84,9 +84,19 @@ uint8_t hs_get_sleep_timeout(void){
 
 uint8_t hs_get_battery_percent(void) {
     uint8_t raw = *md_getp_bat();
-    if (raw > 0 && raw <= 100) {
-        last_valid_battery = raw;
+
+    if (raw == 0 || raw > 100) {
+        return last_valid_battery;
     }
+
+    if (raw > last_valid_battery) {
+        uint8_t d = raw - last_valid_battery;
+        last_valid_battery += (d > 5) ? 5 : d;
+    } else if (raw < last_valid_battery) {
+        uint8_t d = last_valid_battery - raw;
+        last_valid_battery -= (d > 3) ? 3 : d;
+    }
+
     return last_valid_battery;
 }
 
@@ -123,7 +133,7 @@ void eeconfig_confinfo_default(void) {
     confinfo.last_btdevs      = 1;
     confinfo.dir_flag         = 0;
     confinfo.ctrl_app_flag    = 0;
-    confinfo.sleep_timeout    = 2;//default=7 (2min)
+    confinfo.sleep_timeout    = 7;//default=7 (2min)
     confinfo.rgb_enable = true;
     confinfo.moude = 3;
     confinfo.rgb_color = 4;
@@ -306,6 +316,8 @@ void suspend_wakeup_init_kb(void) {
     suspend_wakeup_init_user();
     hs_rgb_blink_set_timer(timer_read32());
     temp = false;
+
+    (void)md_inquire_bat();  /* подтянуть % после сна, не ждать 3 с */
 }
 
 bool lpwr_is_allow_timeout_hook(void) {
@@ -1314,16 +1326,15 @@ void housekeeping_task_user(void) { // loop
         hs_now_mode = MD_SND_CMD_DEVCTRL_CHARGING_STOP;
     }
 
-    if (!hs_current_time || timer_elapsed32(hs_current_time) > 1000) {
-        hs_current_time = timer_read32();
-        md_send_devctrl(hs_now_mode);
-        md_send_devctrl(MD_SND_CMD_DEVCTRL_INQVOL);
-    }
-
     {
-        uint8_t raw = *md_getp_bat();
-        if (raw > 0 && raw <= 100) {
-            last_valid_battery = raw;
+        uint32_t poll_ms = charging_state ? 1000 : 3000;
+        if (!hs_current_time || timer_elapsed32(hs_current_time) > poll_ms) {
+            hs_current_time = timer_read32();
+            md_send_devctrl(hs_now_mode);
+            if (!md_inquire_bat()) {
+                md_send_devctrl(MD_SND_CMD_DEVCTRL_INQVOL);
+            }
+            (void)hs_get_battery_percent();
         }
     }
 
@@ -1547,7 +1558,7 @@ void bat_indicators(void) {
     if (charging_state && bat_full_flag) {
         battery_process_time = 0;
         low_bat_confirm_cnt  = 0;
-    } else if (charging_state && bat <= 95) {
+    } else if (charging_state && !bat_full_flag) {
         battery_process_time = 0;
         low_bat_confirm_cnt  = 0;
         if (!led_status && rgb_matrix_get_val()) {
@@ -1751,9 +1762,9 @@ bool rgb_matrix_indicators_advanced_kb(uint8_t led_min, uint8_t led_max) {
 
     if (confinfo.rgb_tog_filp) {
         uint8_t bat = hs_get_battery_percent();
-        if ((!(charging_state && bat <= 95)) || ((!charging_state) && (bat <= BATTERY_CAPACITY_LOW)) || led_status){
-            for (uint8_t i = 0;i < 3;i++){
-                rgb_matrix_set_color(i,0,0,0);
+        if ((!(charging_state && !bat_full_flag)) || ((!charging_state) && (bat <= BATTERY_CAPACITY_LOW)) || led_status) {
+            for (uint8_t i = 0; i < 3; i++) {
+                rgb_matrix_set_color(i, 0, 0, 0);
             }
         }
         for (uint8_t i = 3;i < RGB_MATRIX_LED_COUNT;i++){
@@ -1908,7 +1919,7 @@ bool rgb_matrix_indicators_advanced_rgblight(uint8_t led_min, uint8_t led_max) {
         }
     }
 
-    if (!led_status && ((charging_state && hs_get_battery_percent() >= 95) || (!charging_state && !(hs_get_battery_percent() <= BATTERY_CAPACITY_LOW)))){
+    if (!led_status && ((charging_state && bat_full_flag) || (!charging_state && !(hs_get_battery_percent() <= BATTERY_CAPACITY_LOW)))) {
         if (!confinfo.rgb_tog_filp && hs_get_rgb_enable()){
             switch (confinfo.moude) {
                 case 0:{extern void rgblight_effect_rainbow_swirl2(void); rgblight_effect_rainbow_swirl2();}break;

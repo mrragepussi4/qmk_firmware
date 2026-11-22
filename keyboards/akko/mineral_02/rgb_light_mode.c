@@ -17,30 +17,30 @@ void rgblight_effect_rainbow_swirl2(void) {
         return;
 
     scan_time = timer_read32();
-    for(uint8_t i = 0; i< 3; i++){	
-		
+    for(uint8_t i = 0; i< 3; i++){
+
         if (dir[i] == 1){
 			if (g[i] <= 69) g[i]+=1;
-			
+
 			else {
 				g[i] = 70;
 				dir[i] = 2;
 			}
 			r[i] = 70- g[i];
 			b[i] = 0;
-		} 
-		
+		}
+
 		else if (dir[i] == 2){
 			if (b[i] <= 69) b[i]+=1;
-		
+
 			else {
 				b[i] = 70;
 				dir[i] = 0;
 			}
 			g[i] = 70- b[i];
 			r[i] = 0;
-		} 
-		
+		}
+
 		else if (dir[i] == 0){
 			if (r[i] <= 69) r[i]+=1;
 			else{
@@ -49,7 +49,7 @@ void rgblight_effect_rainbow_swirl2(void) {
 			}
 			b[i] = 70- r[i];
 			g[i] = 0;
-		} 
+		}
 	}
 }
 
@@ -98,13 +98,13 @@ void rgblight_effect_breathing1(void) {
         default:{
             HSV hsv = {HSV_WHITE};  // 红色
             hsv.v = val;
-            rgb = hsv_to_rgb(hsv);    
+            rgb = hsv_to_rgb(hsv);
         }break;
     }
     rgb_matrix_set_color(0,rgb.r,rgb.g,rgb.b);
     rgb_matrix_set_color(1,rgb.r,rgb.g,rgb.b);
     rgb_matrix_set_color(2,rgb.r,rgb.g,rgb.b);
-    
+
     if (timer_elapsed32(scan_time) >= 2) {
         scan_time = timer_read32();
         if (!breathing_direction){
@@ -121,7 +121,7 @@ void rgblight_effect_breathing1(void) {
 
 void paoma(void){
     static uint8_t i;
-    
+
     for (uint8_t j = 0;j < 3;j++){
         if (j == i || j == i - 1){
             switch (confinfo.rgb_color)
@@ -150,7 +150,7 @@ void paoma(void){
             default:
                 break;
             }
-           
+
         }
         else rgb_matrix_set_color(j,0,0,0);
     }
